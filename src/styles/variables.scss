@@ -1,0 +1,18 @@
+// Colors
+$primary: #FFBD59;
+$dark: #000000;
+$light: #FFFFFF;
+$glass-bg: rgba(255, 255, 255, 0.1);
+$glass-border: rgba(255, 255, 255, 0.2);
+
+// Gradients
+$primary-gradient: linear-gradient(135deg, #FFBD59 0%, #FFD700 100%);
+$glass-gradient: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+
+// Shadows
+$glow-shadow: 0 0 20px rgba(255, 189, 89, 0.3);
+$card-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+
+// Transitions
+$smooth-transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+$bounce-transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
