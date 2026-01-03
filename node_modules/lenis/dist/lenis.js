@@ -1,5 +1,5 @@
 // package.json
-var version = "1.3.11";
+var version = "1.3.17";
 
 // packages/core/src/maths.ts
 function clamp(min, input, max) {
@@ -337,7 +337,7 @@ var Lenis = class {
   // same as isStopped but enabled/disabled when scroll reaches target
   _preventNextNativeScrollEvent = false;
   _resetVelocityTimeout = null;
-  __rafID = null;
+  _rafId = null;
   /**
    * Whether or not the user is touching the screen
    */
@@ -416,7 +416,10 @@ var Lenis = class {
     autoToggle = false,
     // https://caniuse.com/?search=transition-behavior
     allowNestedScroll = false,
-    __experimental__naiveDimensions = false
+    // @ts-ignore: this will be deprecated in the future
+    __experimental__naiveDimensions = false,
+    naiveDimensions = __experimental__naiveDimensions,
+    stopInertiaOnNavigate = false
   } = {}) {
     window.lenisVersion = version;
     if (!wrapper || wrapper === document.documentElement) {
@@ -451,7 +454,8 @@ var Lenis = class {
       anchors,
       autoToggle,
       allowNestedScroll,
-      __experimental__naiveDimensions
+      naiveDimensions,
+      stopInertiaOnNavigate
     };
     this.dimensions = new Dimensions(wrapper, content, { autoResize });
     this.updateClassName();
@@ -460,7 +464,7 @@ var Lenis = class {
     this.options.wrapper.addEventListener("scrollend", this.onScrollEnd, {
       capture: true
     });
-    if (this.options.anchors && this.options.wrapper === window) {
+    if (this.options.anchors || this.options.stopInertiaOnNavigate) {
       this.options.wrapper.addEventListener(
         "click",
         this.onClick,
@@ -478,12 +482,13 @@ var Lenis = class {
     });
     this.virtualScroll.on("scroll", this.onVirtualScroll);
     if (this.options.autoToggle) {
+      this.checkOverflow();
       this.rootElement.addEventListener("transitionend", this.onTransitionEnd, {
         passive: true
       });
     }
     if (this.options.autoRaf) {
-      this.__rafID = requestAnimationFrame(this.raf);
+      this._rafId = requestAnimationFrame(this.raf);
     }
   }
   /**
@@ -504,7 +509,7 @@ var Lenis = class {
       this.onPointerDown,
       false
     );
-    if (this.options.anchors && this.options.wrapper === window) {
+    if (this.options.anchors || this.options.stopInertiaOnNavigate) {
       this.options.wrapper.removeEventListener(
         "click",
         this.onClick,
@@ -514,8 +519,8 @@ var Lenis = class {
     this.virtualScroll.destroy();
     this.dimensions.destroy();
     this.cleanUpClassName();
-    if (this.__rafID) {
-      cancelAnimationFrame(this.__rafID);
+    if (this._rafId) {
+      cancelAnimationFrame(this._rafId);
     }
   }
   on(event, callback) {
@@ -542,15 +547,20 @@ var Lenis = class {
       })
     );
   };
+  get overflow() {
+    const property = this.isHorizontal ? "overflow-x" : "overflow-y";
+    return getComputedStyle(this.rootElement)[property];
+  }
+  checkOverflow() {
+    if (["hidden", "clip"].includes(this.overflow)) {
+      this.internalStop();
+    } else {
+      this.internalStart();
+    }
+  }
   onTransitionEnd = (event) => {
     if (event.propertyName.includes("overflow")) {
-      const property = this.isHorizontal ? "overflow-x" : "overflow-y";
-      const overflow = getComputedStyle(this.rootElement)[property];
-      if (["hidden", "clip"].includes(overflow)) {
-        this.internalStop();
-      } else {
-        this.internalStart();
-      }
+      this.checkOverflow();
     }
   };
   setScroll(scroll) {
@@ -562,18 +572,28 @@ var Lenis = class {
   }
   onClick = (event) => {
     const path = event.composedPath();
-    const anchor = path.find(
-      (node) => node instanceof HTMLAnchorElement && (node.getAttribute("href")?.startsWith("#") || node.getAttribute("href")?.startsWith("/#") || node.getAttribute("href")?.startsWith("./#"))
+    const anchorElements = path.filter(
+      (node) => node instanceof HTMLAnchorElement && node.getAttribute("href")
     );
-    if (anchor) {
-      const id = anchor.getAttribute("href");
-      if (id) {
-        const options = typeof this.options.anchors === "object" && this.options.anchors ? this.options.anchors : void 0;
-        let target = `#${id.split("#")[1]}`;
-        if (["#", "/#", "./#", "#top", "/#top", "./#top"].includes(id)) {
-          target = 0;
+    if (this.options.anchors) {
+      const anchor = anchorElements.find(
+        (node) => node.getAttribute("href")?.includes("#")
+      );
+      if (anchor) {
+        const href = anchor.getAttribute("href");
+        if (href) {
+          const options = typeof this.options.anchors === "object" && this.options.anchors ? this.options.anchors : void 0;
+          const target = `#${href.split("#")[1]}`;
+          this.scrollTo(target, options);
         }
-        this.scrollTo(target, options);
+      }
+    }
+    if (this.options.stopInertiaOnNavigate) {
+      const internalLink = anchorElements.find(
+        (node) => node.host === window.location.host
+      );
+      if (internalLink) {
+        this.reset();
       }
     }
   };
@@ -644,7 +664,6 @@ var Lenis = class {
       programmatic: false,
       ...isSyncTouch ? {
         lerp: hasTouchInertia ? this.options.syncTouchLerp : 1
-        // immediate: !hasTouchInertia,
       } : {
         lerp: this.options.lerp,
         duration: this.options.duration,
@@ -745,7 +764,7 @@ var Lenis = class {
     this.time = time;
     this.animate.advance(deltaTime * 1e-3);
     if (this.options.autoRaf) {
-      this.__rafID = requestAnimationFrame(this.raf);
+      this._rafId = requestAnimationFrame(this.raf);
     }
   };
   /**
@@ -772,19 +791,19 @@ var Lenis = class {
     offset = 0,
     immediate = false,
     lock = false,
-    duration = this.options.duration,
-    easing = this.options.easing,
-    lerp: lerp2 = this.options.lerp,
+    programmatic = true,
+    // called from outside of the class
+    lerp: lerp2 = programmatic ? this.options.lerp : void 0,
+    duration = programmatic ? this.options.duration : void 0,
+    easing = programmatic ? this.options.easing : void 0,
     onStart,
     onComplete,
     force = false,
     // scroll even if stopped
-    programmatic = true,
-    // called from outside of the class
     userData
   } = {}) {
     if ((this.isStopped || this.isLocked) && !force) return;
-    if (typeof target === "string" && ["top", "left", "start"].includes(target)) {
+    if (typeof target === "string" && ["top", "left", "start", "#"].includes(target)) {
       target = 0;
     } else if (typeof target === "string" && ["bottom", "right", "end"].includes(target)) {
       target = this.limit;
@@ -792,6 +811,13 @@ var Lenis = class {
       let node;
       if (typeof target === "string") {
         node = document.querySelector(target);
+        if (!node) {
+          if (target === "#top") {
+            target = 0;
+          } else {
+            console.warn("Lenis: Target not found", target);
+          }
+        }
       } else if (target instanceof HTMLElement && target?.nodeType) {
         node = target;
       }
@@ -978,7 +1004,7 @@ var Lenis = class {
    * The limit which is the maximum scroll value
    */
   get limit() {
-    if (this.options.__experimental__naiveDimensions) {
+    if (this.options.naiveDimensions) {
       if (this.isHorizontal) {
         return this.rootElement.scrollWidth - this.rootElement.clientWidth;
       } else {

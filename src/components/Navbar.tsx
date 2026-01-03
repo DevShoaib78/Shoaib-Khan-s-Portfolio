@@ -1,162 +1,194 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useCallback } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Menu, X } from 'lucide-react'
+import { TIMING } from '../constants/config'
+import { useActiveSection } from '../hooks/useActiveSection'
+import { useIsAtTop } from '../hooks/useScrollPosition'
 
 const Navbar: React.FC = () => {
-  const [isScrolled, setIsScrolled] = useState(false)
+  const isAtTop = useIsAtTop()
+  const activeSection = useActiveSection()
   const [isNavOpen, setIsNavOpen] = useState(false)
-  const [activeSection, setActiveSection] = useState('hero')
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50)
-      
-      // Detect active section
-      const sections = ['hero', 'about', 'journey', 'experience', 'services', 'contact']
-      for (const section of sections) {
-        const element = document.getElementById(section)
-        if (element) {
-          const rect = element.getBoundingClientRect()
-          if (rect.top <= 100 && rect.bottom >= 100) {
-            setActiveSection(section)
-            break
-          }
-        }
-      }
-    }
-
-    window.addEventListener('scroll', handleScroll)
-    return () => window.removeEventListener('scroll', handleScroll)
-  }, [])
 
   const navItems = [
     { name: 'About', href: '#about' },
     { name: 'Journey', href: '#journey' },
     { name: 'Experience', href: '#experience' },
-    { name: 'Services', href: '#services' },
     { name: 'Contact', href: '#contact' }
   ]
 
-  const scrollToSection = (href: string) => {
+  const scrollToSection = useCallback((href: string) => {
     const element = document.querySelector(href)
     if (element) {
-      element.scrollIntoView({ behavior: 'smooth' })
+      setIsNavOpen(false)
+
+      // Small delay to allow menu to close first
+      setTimeout(() => {
+        // Use native smooth scroll for better performance
+        element.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      }, TIMING.MENU_CLOSE_DELAY)
     }
-    setIsNavOpen(false)
-  }
+  }, [])
 
   return (
     <>
-      {/* Menu Button - Top Right */}
-      <motion.div
-        initial={{ y: -100, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ duration: 0.8, delay: 0.2 }}
-        className="fixed top-6 right-6 z-50"
-      >
-        <motion.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={() => setIsNavOpen(!isNavOpen)}
-          className={`
-            relative p-4 rounded-full transition-all duration-300
-            ${isScrolled 
-              ? 'bg-black/90 backdrop-blur-xl border border-[#FEBD59]/40 shadow-xl shadow-[#FEBD59]/25' 
-              : 'bg-black/70 backdrop-blur-md border border-[#FEBD59]/30 shadow-lg shadow-[#FEBD59]/15'
-            }
-          `}
+      {/* Desktop Navbar - Pill shaped with width animation */}
+      <div className="hidden lg:flex fixed top-6 left-0 right-0 z-50 justify-center px-4">
+        <motion.nav
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.3 }}
+          className="w-full max-w-5xl"
         >
-          {/* Glowing effect */}
-          <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#FEBD59]/15 to-yellow-400/15" />
-          
-          {/* Icon with smooth transition */}
           <motion.div
-            animate={{ rotate: isNavOpen ? 90 : 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="relative z-10"
+            animate={{
+              width: isAtTop ? '100%' : '85%',
+            }}
+            transition={{
+              duration: TIMING.NAVBAR_TRANSITION_DURATION / 1000,
+              ease: [0.4, 0, 0.2, 1]
+            }}
+            className="rounded-full px-6 py-2 bg-black/90 backdrop-blur-xl shadow-2xl mx-auto"
+            style={{
+              border: '1px solid rgba(254, 189, 89, 0.3)',
+              boxShadow: '0 25px 50px -12px rgba(254, 189, 89, 0.2)',
+              willChange: 'width'
+            }}
           >
-            {isNavOpen ? (
-              <X 
-                size={28} 
-                className="text-[#FEBD59]"
-                strokeWidth={2.5}
-              />
-            ) : (
-              <Menu 
-                size={28} 
-                className="text-[#FEBD59]"
-                strokeWidth={2.5}
-              />
-            )}
+            <div className="flex items-center justify-between gap-1.5">
+              {navItems.map((item) => {
+                const isActive = activeSection === item.href.substring(1)
+                return (
+                  <motion.button
+                    key={item.name}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                    onClick={() => scrollToSection(item.href)}
+                    className="relative px-5 lg:px-7 py-3 rounded-full font-body font-semibold text-base transition-all duration-300"
+                    style={{ color: isActive ? '#000000' : '#FFFFFF', willChange: 'transform' }}
+                  >
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeTab"
+                        className="absolute inset-0 rounded-full shadow-lg"
+                        style={{
+                          backgroundColor: '#FEBD59',
+                          boxShadow: '0 10px 15px -3px rgba(254, 189, 89, 0.3)',
+                          willChange: 'transform'
+                        }}
+                        transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
+                      />
+                    )}
+                    <span className="relative z-10">{item.name}</span>
+                  </motion.button>
+                )
+              })}
+            </div>
           </motion.div>
-        </motion.button>
-      </motion.div>
+        </motion.nav>
+      </div>
 
-      {/* Full Navbar */}
-      <AnimatePresence>
-        {isNavOpen && (
-          <motion.nav
-            initial={{ y: -100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: -100, opacity: 0 }}
-            transition={{ duration: 0.4, ease: "easeOut" }}
-            className="fixed top-0 left-0 right-0 z-40 px-6 pt-6"
+      {/* Mobile/Tablet - Hamburger Menu */}
+      <div className="lg:hidden">
+        <motion.div
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.2 }}
+          className="fixed top-4 right-4 sm:top-6 sm:right-6 z-50"
+        >
+          <motion.button
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setIsNavOpen(!isNavOpen)}
+            className="relative p-3 sm:p-4 rounded-full bg-black/90 backdrop-blur-xl shadow-xl"
+            style={{
+              border: '1px solid rgba(254, 189, 89, 0.4)',
+              boxShadow: '0 20px 25px -5px rgba(254, 189, 89, 0.25)',
+              willChange: 'transform'
+            }}
           >
-            <div className="container mx-auto max-w-4xl">
-              {/* Enhanced pill-style navbar */}
+            <div
+              className="absolute inset-0 rounded-full"
+              style={{ background: 'linear-gradient(to right, rgba(254, 189, 89, 0.15), rgba(255, 157, 0, 0.15))' }}
+            />
+            <motion.div
+              animate={{ rotate: isNavOpen ? 90 : 0 }}
+              transition={{ duration: 0.3 }}
+              className="relative z-10"
+              style={{ willChange: 'transform' }}
+            >
+              {isNavOpen ? (
+                <X size={24} className="sm:w-7 sm:h-7" style={{ color: '#FEBD59' }} strokeWidth={2.5} />
+              ) : (
+                <Menu size={24} className="sm:w-7 sm:h-7" style={{ color: '#FEBD59' }} strokeWidth={2.5} />
+              )}
+            </motion.div>
+          </motion.button>
+        </motion.div>
+
+        <AnimatePresence>
+          {isNavOpen && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.3 }}
+              className="fixed inset-0 bg-black/80 backdrop-blur-sm z-40"
+              onClick={() => setIsNavOpen(false)}
+            >
               <motion.div
-                initial={{ scale: 0.9, opacity: 0 }}
-                animate={{ scale: 1, opacity: 1 }}
-                exit={{ scale: 0.9, opacity: 0 }}
-                transition={{ duration: 0.3, delay: 0.1 }}
-                className="rounded-full px-10 py-8 bg-black/95 backdrop-blur-xl border border-[#FEBD59]/30 shadow-2xl shadow-[#FEBD59]/20"
+                initial={{ x: '100%' }}
+                animate={{ x: 0 }}
+                exit={{ x: '100%' }}
+                transition={{ type: 'spring', damping: 25, stiffness: 200 }}
+                className="absolute right-0 top-0 bottom-0 w-[85vw] max-w-80 bg-black/95 backdrop-blur-sm shadow-2xl" // Reduced blur
+                style={{ borderLeft: '1px solid rgba(254, 189, 89, 0.3)', willChange: 'transform' }}
+                onClick={(e) => e.stopPropagation()}
               >
-                {/* Navigation Items - Centered with better spacing */}
-                <div className="flex items-center justify-center space-x-4">
+                <div className="flex flex-col items-start p-8 pt-24 space-y-4">
                   {navItems.map((item, index) => {
                     const isActive = activeSection === item.href.substring(1)
                     return (
                       <motion.button
                         key={item.name}
-                        initial={{ opacity: 0, y: -20 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.2 + index * 0.1 }}
-                        whileHover={{ scale: 1.05 }}
+                        initial={{ opacity: 0, x: 50 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: index * 0.1 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={() => scrollToSection(item.href)}
-                        className={`
-                          relative px-8 py-4 rounded-full font-body font-semibold text-lg transition-all duration-300
-                          ${isActive 
-                            ? 'text-black' 
-                            : 'text-white hover:text-white'
+                        className="w-full text-left px-6 py-4 rounded-xl font-body font-semibold text-lg transition-all duration-300"
+                        style={isActive
+                          ? {
+                            backgroundColor: '#FEBD59',
+                            color: '#000000',
+                            boxShadow: '0 10px 15px -3px rgba(254, 189, 89, 0.3)'
                           }
-                        `}
-                        style={{ letterSpacing: '-0.01em' }}
+                          : {
+                            color: '#FFFFFF',
+                            backgroundColor: 'transparent'
+                          }
+                        }
+                        onMouseEnter={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = 'rgba(254, 189, 89, 0.1)'
+                          }
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isActive) {
+                            e.currentTarget.style.backgroundColor = 'transparent'
+                          }
+                        }}
                       >
-                        {isActive && (
-                          <motion.div
-                            layoutId="activeTab"
-                            className="absolute inset-0 rounded-full bg-[#FEBD59] shadow-lg shadow-[#FEBD59]/30"
-                            transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
-                          />
-                        )}
-                        <span className="relative z-10">{item.name}</span>
-                        {!isActive && (
-                          <motion.div
-                            className="absolute inset-0 rounded-full bg-white/0 hover:bg-[#FEBD59]/15"
-                            whileHover={{ backgroundColor: 'rgba(254, 189, 89, 0.15)' }}
-                            transition={{ duration: 0.2 }}
-                          />
-                        )}
+                        {item.name}
                       </motion.button>
                     )
                   })}
                 </div>
               </motion.div>
-            </div>
-          </motion.nav>
-        )}
-      </AnimatePresence>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
     </>
   )
 }

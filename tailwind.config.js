@@ -7,14 +7,18 @@ export default {
   theme: {
     extend: {
       colors: {
-        primary: '#FFBD59',
-        dark: '#000000',
-        light: '#FFFFFF'
+        primary: '#FEBD59',
+        orange: {
+          DEFAULT: '#FF9D00',
+          light: '#FF9A00',
+          medium: '#FFBC4C',
+          bright: '#FFDE63'
+        }
       },
       fontFamily: {
-        'display': ['Syne', 'sans-serif'],
-        'body': ['DM Sans', 'sans-serif'],
-        'accent': ['Manrope', 'sans-serif']
+        'display': ['Cabinet Grotesk', 'sans-serif'],
+        'body': ['Urbanist', 'sans-serif'],
+        'accent': ['Karla', 'sans-serif']
       },
       animation: {
         'fade-in': 'fadeIn 0.8s ease-in-out',
