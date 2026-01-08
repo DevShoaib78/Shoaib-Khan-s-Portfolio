@@ -21,6 +21,7 @@ const HighlightedText: React.FC<HighlightedTextProps> = ({
     'director',
     'writer',
     'video editor',
+    'entrepreneurial',
     'entrepreneur',
     '2017',
     'video editing',

@@ -32,7 +32,7 @@ const AboutSection: React.FC = () => {
     <section
       ref={sectionRef}
       id="about"
-      className="relative min-h-screen flex items-center justify-center overflow-hidden bg-black py-20 lg:py-32"
+      className="relative flex items-center justify-center overflow-hidden bg-black py-20 lg:py-32"
       style={{ overflowX: 'hidden' }}
     >
 

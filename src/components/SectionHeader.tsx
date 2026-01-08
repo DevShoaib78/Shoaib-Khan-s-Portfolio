@@ -21,7 +21,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
   return (
     <motion.div
       initial={{ opacity: 0, y: 50 }}
-      animate={isInView ? { opacity: 1, y: 0 } : {}}
+      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 50 }}
       transition={{ duration: 1, ease: [0.6, 0.05, 0.01, 0.9] }}
       className={`text-center mb-16 lg:mb-24 ${className}`}
     >
@@ -29,7 +29,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
         className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-display mb-4 leading-none tracking-tight"
         style={{ fontWeight: 900 }}
         initial={{ opacity: 0, scale: 0.8 }}
-        animate={isInView ? { opacity: 1, scale: 1 } : {}}
+        animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
         transition={{ duration: 0.8, delay: 0.2 }}
       >
         {title && <span className="text-white">{title} </span>}
@@ -44,7 +44,7 @@ const SectionHeader: React.FC<SectionHeaderProps> = ({
           willChange: 'transform'
         }}
         initial={{ scaleX: 0, opacity: 0 }}
-        animate={isInView ? { scaleX: 1, opacity: 1 } : {}}
+        animate={isInView ? { scaleX: 1, opacity: 1 } : { scaleX: 0, opacity: 0 }}
         transition={{ duration: 1, delay: 0.5 }}
       />
     </motion.div>

@@ -57,7 +57,7 @@ const ExperienceSection: React.FC = () => {
       style={{ overflowX: 'hidden' }}
     >
       <div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <SectionHeader gradientText="EXPERIENCES" isInView={isInView} />
+        <SectionHeader title="MY" gradientText="EXPERIENCES" isInView={isInView} />
 
         {/* Experience Grid - Modern Layout */}
         <div className="max-w-7xl mx-auto">

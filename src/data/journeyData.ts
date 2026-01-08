@@ -37,7 +37,14 @@ export interface PlaceholderMilestone {
   placeholderText?: string
 }
 
-export type Milestone = VideoMilestone | SideBySideVideoMilestone | ImageMilestone | PlaceholderMilestone
+export interface VideoFileMilestone {
+  type: 'video-file'
+  title: string
+  description?: string
+  videoFile: string  // Path to local video file
+}
+
+export type Milestone = VideoMilestone | SideBySideVideoMilestone | ImageMilestone | PlaceholderMilestone | VideoFileMilestone
 
 export interface YearData {
   year: string
@@ -45,7 +52,7 @@ export interface YearData {
 }
 
 // ============================================
-// JOURNEY DATA - Year-centric Timeline (Chronological Order)
+// JOURNEY DATA - Grouped by Year
 // ============================================
 
 export const journeyData: YearData[] = [
@@ -55,8 +62,8 @@ export const journeyData: YearData[] = [
     milestones: [
       {
         type: 'side-by-side',
-        title: 'Inspired by The Baigan Vines (TBV)',
-        description: 'Created early YouTube sketches and short films.',
+        title: 'Early Creative Journey',
+        description: 'Inspired by The Baigan Vines (TBV), created early YouTube sketches and short films.',
         leftVideoUrl: 'https://www.youtube.com/watch?v=dFVN-VAesNM',
         rightVideoUrl: 'https://www.youtube.com/watch?v=Z9qalRZfCi0',
       },
@@ -70,7 +77,7 @@ export const journeyData: YearData[] = [
       {
         type: 'video',
         title: 'First Telugu Short Film',
-        description: 'My first attempt at storytelling through cinema.',
+        description: 'Directed my first Telugu short film.',
         videoUrl: 'https://www.youtube.com/watch?v=aQPRRoN5_nU',
         startTime: '1:20',
         endTime: '2:13',
@@ -85,9 +92,8 @@ export const journeyData: YearData[] = [
       {
         type: 'video',
         title: 'One of the Craziest Videos',
-        description: 'Pushing creative boundaries with viral content.',
+        description: 'Produced one of my craziest videos.',
         videoUrl: 'https://www.youtube.com/watch?v=gYuMT0itw9g',
-        // Full video - no timestamps
       },
     ],
   },
@@ -97,80 +103,57 @@ export const journeyData: YearData[] = [
     year: '2021–2022',
     milestones: [
       {
-        type: 'placeholder',
-        title: 'Dedicated to ESPORTS',
-        description: 'Competed and played on national level. A different kind of journey.',
-        placeholderText: 'Video coming soon...',
+        type: 'video-file',
+        title: 'E-Sports Phase',
+        description: 'Dedicated time towards E-Sports.',
+        videoFile: '/assets/esportsphase.mp4',
       },
     ],
   },
 
-  // March 2023
-  {
-    year: 'March 2023',
-    milestones: [
-      {
-        type: 'image',
-        title: 'Joined Edventure Park',
-        description: 'First step into the startup ecosystem.',
-        imageUrl: undefined,  // Placeholder - image to be added
-      },
-    ],
-  },
-
-  // 2023 (Multiple milestones)
+  // 2023 (all 2023 milestones grouped together)
   {
     year: '2023',
     milestones: [
       {
-        type: 'video',
-        title: 'EdTalk Panelist',
-        description: 'Sharing insights on education and entrepreneurship.',
-        videoUrl: 'https://www.youtube.com/watch?v=YB8Jw19X5fY',
-        // Full video
+        type: 'image',
+        title: 'Joined Edventure Park',
+        description: "Joined Edventure Park (India's 1st/largest student-focused startup incubator).",
+        imageUrl: '/assets/JoinedEdventurePark.webp',
       },
-      {
-        type: 'video',
-        title: 'Stand-Up Comedy Performance',
-        description: 'Taking the stage for laughs.',
-        videoUrl: 'https://youtu.be/3btEtcmv6GI?si=Vz4GABEHCeKSw4w8',
-        // Full video
-      },
-      {
-        type: 'video',
-        title: 'Meeting SJ',
-        description: 'An inspiring conversation with Sayeeda Jabri.',
-        videoUrl: 'https://www.youtube.com/watch?v=5QiDSWN3T-w',
-        startTime: '0:00',
-        endTime: '1:00',  // 1-minute segment
-      },
-    ],
-  },
-
-  // Sept 2023
-  {
-    year: 'Sept 2023',
-    milestones: [
       {
         type: 'video',
         title: "Meeting with Hyderabad's Influencers",
-        description: 'A FEEL video capturing the energy of the creator community.',
+        description: '',
         videoUrl: 'https://youtu.be/ou_aBdkTlI8?si=ttPPPvYA8o1_VPFD',
         startTime: '7:53',
         endTime: '9:02',
       },
-    ],
-  },
-
-  // Later 2023
-  {
-    year: 'Later 2023',
-    milestones: [
       {
         type: 'image',
-        title: 'BioReform & Content Creation',
-        description: 'Merging purpose with creativity.',
-        imageUrl: undefined,  // Placeholder - image to be added
+        title: 'Joined BioReform',
+        description: 'Joined BioReform as a content and media creator (My Startup journey started + Met Azhar Mohiuddin).',
+        imageUrl: '/assets/BioReform & Content Creation.webp',
+      },
+      {
+        type: 'video',
+        title: 'EdTalk Panelist',
+        description: 'Became a panelist for a EdTalk topic called "Influencer Influenza.',
+        videoUrl: 'https://youtu.be/YB8Jw19X5fY',
+      },
+      {
+        type: 'video',
+        title: 'Meeting Sayeeda Jabri',
+        description: 'Met Sayeeda Jabri, after that a vision sparked - she wanted to bring entrepreneurial talks to media, and Shoaib wanted to cover authentic startup stories, thus started Hyderabad Hustlers.',
+        videoUrl: 'https://www.youtube.com/watch?v=5QiDSWN3T-w',
+        startTime: '2:30',
+        endTime: '3:30',
+      },
+      {
+        type: 'video',
+        title: 'Stand-Up Comedy Performance',
+        description: '',
+        videoUrl: 'https://youtu.be/3btEtcmv6GI?si=Vz4GABEHCeKSw4w8',
       },
     ],
   },
@@ -182,14 +165,14 @@ export const journeyData: YearData[] = [
       {
         type: 'image',
         title: 'Formation of Hyderabad Hustlers',
-        description: 'Building a community of entrepreneurs and storytellers.',
-        imageUrl: undefined,  // Group photo placeholder
+        description: 'Hyderabad Hustlers was formed. Initially ran podcasts while still working with BioReform. Later chose to fully dedicate myself to Hyderabad Hustlers, leaving BioReform. Unlike other startups that go through long pre-incubation phases at EdVenture Park, Hyderabad Hustlers got directly incubated due to the rapid traction.',
+        imageUrl: '/assets/Formation of HH.webp',
       },
       {
         type: 'image',
         title: 'Joined Terminate Hunger',
-        description: 'Volunteering & service to humanity.',
-        imageUrl: undefined,  // Placeholder - image to be added
+        description: 'Met Imad ali at Founders’ Fest and recorded his vision - Loved his vision nd mission and joined his team to terminate the hunger,',
+        imageUrl: '/assets/Joined Terminate Hunger.webp',
       },
     ],
   },
