@@ -100,6 +100,8 @@ const Navbar: React.FC = () => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setIsNavOpen(!isNavOpen)}
+            aria-label={isNavOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            aria-expanded={isNavOpen}
             className="relative p-3 sm:p-4 rounded-full bg-black/90 backdrop-blur-xl shadow-xl"
             style={{
               border: '1px solid rgba(254, 189, 89, 0.4)',

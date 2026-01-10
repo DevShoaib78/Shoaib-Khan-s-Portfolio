@@ -1,0 +1,12 @@
+# Robots.txt for Shoaib Khan Portfolio
+# https://shoaibkhan.in
+
+User-agent: *
+Allow: /
+
+# Sitemap location
+Sitemap: https://shoaibkhan.in/sitemap.xml
+
+# Disallow admin/private paths (if any in future)
+# Disallow: /admin/
+# Disallow: /private/

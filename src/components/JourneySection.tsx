@@ -14,6 +14,8 @@ interface VideoPlayerProps {
   title: string
   startTime?: string
   endTime?: string
+  customThumbnail?: string
+  openInYouTube?: boolean
 }
 
 const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -21,11 +23,14 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   title,
   startTime,
   endTime,
+  customThumbnail,
+  openInYouTube: shouldOpenInYouTube,
 }) => {
   const [isPlaying, setIsPlaying] = useState(false)
-  const [thumbnailQuality, setThumbnailQuality] = useState<'maxresdefault' | 'hqdefault' | 'mqdefault' | 'sddefault'>('maxresdefault')
+  const [embedError, setEmbedError] = useState(false)
+  const [thumbnailQuality, setThumbnailQuality] = useState<'maxresdefault' | 'hqdefault' | 'mqdefault' | 'sddefault' | 'default'>('maxresdefault')
   const videoId = getYouTubeVideoId(videoUrl)
-  const thumbnailUrl = getYouTubeThumbnail(videoId, thumbnailQuality)
+  const thumbnailUrl = customThumbnail || getYouTubeThumbnail(videoId, thumbnailQuality === 'default' ? 'default' : thumbnailQuality)
 
   const embedUrl = getYouTubeEmbedUrl(videoId, {
     autoplay: true,
@@ -34,19 +39,38 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   })
 
   const handleThumbnailError = () => {
-    // Fallback chain: maxresdefault -> hqdefault -> mqdefault -> sddefault
+    // Fallback chain: maxresdefault -> hqdefault -> mqdefault -> sddefault -> default
     if (thumbnailQuality === 'maxresdefault') {
       setThumbnailQuality('hqdefault')
     } else if (thumbnailQuality === 'hqdefault') {
       setThumbnailQuality('mqdefault')
     } else if (thumbnailQuality === 'mqdefault') {
       setThumbnailQuality('sddefault')
+    } else if (thumbnailQuality === 'sddefault') {
+      setThumbnailQuality('default')
     }
+  }
+
+  const openYouTubeInNewTab = () => {
+    const timeParam = startTime ? `&t=${startTime.replace(':', 'm')}s` : ''
+    window.open(`https://www.youtube.com/watch?v=${videoId}${timeParam}`, '_blank')
+  }
+
+  const handlePlayClick = () => {
+    if (shouldOpenInYouTube) {
+      openYouTubeInNewTab()
+      return
+    }
+    setIsPlaying(true)
+    // Set a timeout to detect if embedding might have failed
+    setTimeout(() => {
+      setEmbedError(true)
+    }, 5000)
   }
 
   if (isPlaying) {
     return (
-      <div className="w-full aspect-video rounded-xl overflow-hidden shadow-2xl">
+      <div className="relative w-full aspect-video rounded-xl overflow-hidden shadow-2xl">
         <iframe
           src={embedUrl}
           title={title}
@@ -54,6 +78,25 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
           allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
           allowFullScreen
         />
+        {embedError && (
+          <motion.div
+            className="absolute top-4 right-4 z-20"
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+          >
+            <button
+              onClick={openYouTubeInNewTab}
+              className="px-4 py-2 rounded-lg text-sm font-semibold backdrop-blur-md transition-all duration-300"
+              style={{
+                background: 'rgba(254, 189, 89, 0.95)',
+                color: '#000',
+                boxShadow: '0 4px 12px rgba(254, 189, 89, 0.4)',
+              }}
+            >
+              Open in YouTube
+            </button>
+          </motion.div>
+        )}
       </div>
     )
   }
@@ -61,7 +104,7 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({
   return (
     <motion.div
       className="relative w-full aspect-video rounded-xl overflow-hidden cursor-pointer group shadow-2xl"
-      onClick={() => setIsPlaying(true)}
+      onClick={handlePlayClick}
       whileHover={{ scale: 1.01 }}
       transition={{ duration: 0.3 }}
     >
@@ -124,6 +167,8 @@ interface SideBySideVideoProps {
   leftEndTime?: string
   rightStartTime?: string
   rightEndTime?: string
+  leftThumbnail?: string
+  rightThumbnail?: string
 }
 
 const SideBySideVideo: React.FC<SideBySideVideoProps> = ({
@@ -134,6 +179,8 @@ const SideBySideVideo: React.FC<SideBySideVideoProps> = ({
   leftEndTime,
   rightStartTime,
   rightEndTime,
+  leftThumbnail,
+  rightThumbnail,
 }) => {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -142,12 +189,14 @@ const SideBySideVideo: React.FC<SideBySideVideoProps> = ({
         title={`${title} - Part 1`}
         startTime={leftStartTime}
         endTime={leftEndTime}
+        customThumbnail={leftThumbnail}
       />
       <VideoPlayer
         videoUrl={rightVideoUrl}
         title={`${title} - Part 2`}
         startTime={rightStartTime}
         endTime={rightEndTime}
+        customThumbnail={rightThumbnail}
       />
     </div>
   )
@@ -187,12 +236,11 @@ const LocalVideoPlayer: React.FC<LocalVideoPlayerProps> = ({ videoFile, title })
 // ============================================
 
 interface PlaceholderProps {
-  title: string
   text?: string
   type: 'video' | 'image'
 }
 
-const MediaPlaceholder: React.FC<PlaceholderProps> = ({ title, text, type }) => (
+const MediaPlaceholder: React.FC<PlaceholderProps> = ({ text, type }) => (
   <motion.div
     className="w-full aspect-video rounded-xl flex flex-col items-center justify-center relative overflow-hidden"
     style={{
@@ -279,6 +327,7 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone }) => {
                 title={milestone.title}
                 startTime={milestone.startTime}
                 endTime={milestone.endTime}
+                openInYouTube={milestone.openInYouTube}
               />
             )}
 
@@ -298,6 +347,8 @@ const MilestoneCard: React.FC<MilestoneCardProps> = ({ milestone }) => {
                 leftEndTime={milestone.leftEndTime}
                 rightStartTime={milestone.rightStartTime}
                 rightEndTime={milestone.rightEndTime}
+                leftThumbnail={milestone.leftThumbnail}
+                rightThumbnail={milestone.rightThumbnail}
               />
             )}
 
@@ -523,40 +574,77 @@ const ImpactStats: React.FC = () => {
         viewport={{ once: true, amount: 0.3 }}
         transition={{ delay: 0.5 }}
       >
-        <div className="flex items-center p-2">
-          <div className="flex-shrink-0 mr-3">
-            <div className="bg-[#FEBD59]/10 border border-[#FEBD59]/20 rounded-lg px-3 py-2 backdrop-blur-md">
-              <span className="text-[#FEBD59] font-display font-bold text-xs tracking-wide">
-                COLLABORATIONS
-              </span>
-            </div>
+        {/* Header - centered on top */}
+        <div className="flex justify-center pt-4 pb-2">
+          <div className="bg-[#FEBD59]/10 border border-[#FEBD59]/20 rounded-lg px-4 py-2 backdrop-blur-md">
+            <span className="text-[#FEBD59] font-display font-bold text-xs tracking-wide">
+              COLLABORATIONS
+            </span>
+          </div>
+        </div>
+
+        {/* Ticker */}
+        <div className="relative overflow-hidden">
+          {/* Fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-12 md:w-20 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-12 md:w-20 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
+
+          <div
+            className="ticker-container flex items-center py-4"
+            style={{ width: 'max-content' }}
+          >
+            {/* First set of logos */}
+            {collaboratedBrands.map((brand, index) => (
+              <div
+                key={`set1-${index}`}
+                className="flex items-center justify-center flex-shrink-0"
+                style={{ marginLeft: '32px', marginRight: '32px' }}
+              >
+                <img
+                  src={brand.logo}
+                  alt={brand.name}
+                  className="object-contain opacity-90 hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    height: brand.name === 'Edventure Park' ? '70px' : '55px',
+                    width: 'auto'
+                  }}
+                />
+              </div>
+            ))}
+            {/* Duplicate set for seamless loop */}
+            {collaboratedBrands.map((brand, index) => (
+              <div
+                key={`set2-${index}`}
+                className="flex items-center justify-center flex-shrink-0"
+                style={{ marginLeft: '32px', marginRight: '32px' }}
+              >
+                <img
+                  src={brand.logo}
+                  alt={brand.name}
+                  className="object-contain opacity-90 hover:opacity-100 transition-opacity duration-300"
+                  style={{
+                    height: brand.name === 'Edventure Park' ? '70px' : '55px',
+                    width: 'auto'
+                  }}
+                />
+              </div>
+            ))}
           </div>
 
-          <div className="relative flex-1 overflow-hidden h-9">
-            {/* Fade edges */}
-            <div className="absolute left-0 top-0 bottom-0 w-10 bg-gradient-to-r from-black to-transparent z-10" />
-            <div className="absolute right-0 top-0 bottom-0 w-10 bg-gradient-to-l from-black to-transparent z-10" />
-
-            <motion.div
-              className="flex gap-6 whitespace-nowrap absolute"
-              animate={{ x: ['0%', '-50%'] }}
-              transition={{
-                duration: 30,
-                repeat: Infinity,
-                ease: 'linear'
-              }}
-            >
-              {[...collaboratedBrands, ...collaboratedBrands, ...collaboratedBrands].map((brand, index) => (
-                <span
-                  key={index}
-                  className="text-white/50 font-display text-sm font-semibold flex items-center gap-2"
-                >
-                  {brand}
-                  <span className="w-1 h-1 rounded-full bg-[#FEBD59]/40" />
-                </span>
-              ))}
-            </motion.div>
-          </div>
+          <style>{`
+            @keyframes ticker {
+              0% { transform: translateX(0); }
+              100% { transform: translateX(-50%); }
+            }
+            .ticker-container {
+              animation: ticker 6s linear infinite;
+            }
+            @media (min-width: 768px) {
+              .ticker-container {
+                animation: ticker 10s linear infinite;
+              }
+            }
+          `}</style>
         </div>
       </motion.div>
     </motion.div>

@@ -51,6 +51,7 @@ export function useLenis(options: LenisOptions = {}) {
             lenis.destroy()
             lenisRef.current = null
         }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     return lenisRef

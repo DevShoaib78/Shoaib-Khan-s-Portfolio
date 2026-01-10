@@ -21,12 +21,12 @@ export const getYouTubeVideoId = (url: string): string => {
 /**
  * Generates YouTube thumbnail URL
  * @param videoId - YouTube video ID
- * @param quality - Thumbnail quality ('maxresdefault' | 'hqdefault' | 'mqdefault' | 'sddefault')
+ * @param quality - Thumbnail quality ('maxresdefault' | 'hqdefault' | 'mqdefault' | 'sddefault' | 'default')
  * @returns Thumbnail URL
  */
 export const getYouTubeThumbnail = (
   videoId: string,
-  quality: 'maxresdefault' | 'hqdefault' | 'mqdefault' | 'sddefault' = 'maxresdefault'
+  quality: 'maxresdefault' | 'hqdefault' | 'mqdefault' | 'sddefault' | 'default' = 'maxresdefault'
 ): string => {
   return `https://img.youtube.com/vi/${videoId}/${quality}.jpg`
 }

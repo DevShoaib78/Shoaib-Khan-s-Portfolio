@@ -9,6 +9,7 @@ export interface VideoMilestone {
   videoUrl: string
   startTime?: string  // Format: "mm:ss" or "hh:mm:ss"
   endTime?: string    // Format: "mm:ss" or "hh:mm:ss"
+  openInYouTube?: boolean  // If true, opens directly in YouTube instead of embedding
 }
 
 export interface SideBySideVideoMilestone {
@@ -21,6 +22,8 @@ export interface SideBySideVideoMilestone {
   leftEndTime?: string
   rightStartTime?: string
   rightEndTime?: string
+  leftThumbnail?: string   // Optional custom thumbnail for left video
+  rightThumbnail?: string  // Optional custom thumbnail for right video
 }
 
 export interface ImageMilestone {
@@ -66,6 +69,7 @@ export const journeyData: YearData[] = [
         description: 'Inspired by The Baigan Vines (TBV), created early YouTube sketches and short films.',
         leftVideoUrl: 'https://www.youtube.com/watch?v=dFVN-VAesNM',
         rightVideoUrl: 'https://www.youtube.com/watch?v=Z9qalRZfCi0',
+        rightThumbnail: '/assets/thumbnail1.png',
       },
     ],
   },
@@ -128,6 +132,7 @@ export const journeyData: YearData[] = [
         videoUrl: 'https://youtu.be/ou_aBdkTlI8?si=ttPPPvYA8o1_VPFD',
         startTime: '7:53',
         endTime: '9:02',
+        openInYouTube: true,
       },
       {
         type: 'image',
@@ -148,6 +153,7 @@ export const journeyData: YearData[] = [
         videoUrl: 'https://www.youtube.com/watch?v=5QiDSWN3T-w',
         startTime: '2:30',
         endTime: '3:30',
+        openInYouTube: true,
       },
       {
         type: 'video',
@@ -194,13 +200,16 @@ export const impactStats: ImpactStat[] = [
   { value: '15+', label: 'Brands Collaborated', icon: 'briefcase' },
 ]
 
-export const collaboratedBrands: string[] = [
-  'Edventure Park',
-  'BioReform',
-  'August Fest',
-  'Terminate Hunger',
-  'HH Studio',
-  'Creator Economy',
-  'Startup Hyderabad',
-  'TEDx',
+export interface CollaborationBrand {
+  name: string
+  logo: string
+}
+
+export const collaboratedBrands: CollaborationBrand[] = [
+  { name: 'Edventure Park', logo: '/assets/collab logos/evp.webp' },
+  { name: 'BioReform', logo: '/assets/collab logos/bioreform.webp' },
+  { name: 'TEDx MJCET', logo: '/assets/collab logos/tedxmjcet.webp' },
+  { name: 'Startup Hyderabad', logo: '/assets/collab logos/startuphyd.webp' },
+  { name: 'Terminate Hunger', logo: '/assets/collab logos/Terminate Hunger White.webp' },
+  { name: 'The August Fest', logo: '/assets/collab logos/The August Fest.webp' },
 ]

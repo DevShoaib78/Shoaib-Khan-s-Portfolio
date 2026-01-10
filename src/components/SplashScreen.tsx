@@ -42,6 +42,7 @@ const SplashScreen: React.FC = () => {
       intervals.forEach(clearTimeout)
       window.removeEventListener('resize', updateParticleCount)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   const textVariants = {
